@@ -37,20 +37,20 @@ public class BannerController {
     }
 
 
-//    @PutMapping("banners/{id}")
-//    @PreAuthorize("hasRole('ROLE_ADMIN')")
-//    public ResponseEntity<Banner> editBanner(@RequestBody @Valid Banner bannerDetails, @PathVariable int id){
-//        return bannerService.editBanner(bannerDetails, id);
-//    }
+    @PutMapping("banners/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Banner> editBanner(@RequestBody @Valid Banner bannerDetails, @PathVariable int id){
+        return bannerService.editBanner(bannerDetails, id);
+    }
 
     @PostMapping("/banners")
-//    @RolesAllowed("ROLE_ADMIN")
+    @RolesAllowed("ROLE_ADMIN")
     public ResponseEntity<Banner> addNewBanner(@RequestBody @Valid Banner banner){
         return bannerService.createNewBanner(banner);
     }
 
     @DeleteMapping("/banners/{id}")
-//    @RolesAllowed("ROLE_ADMIN")
+    @RolesAllowed("ROLE_ADMIN")
     public ResponseEntity<Banner> deleteBanner(@PathVariable int id) {
         return bannerService.deleteBanner(id);
     }

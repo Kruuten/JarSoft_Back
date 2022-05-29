@@ -52,22 +52,27 @@ public class BannerService {
         else return new  ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-//    public ResponseEntity<Banner> editBanner(Banner bannerDetails, int id){
-//        Optional<Banner> optional = bannerRep.findById(id);
+    public ResponseEntity<Banner> editBanner(Banner bannerDetails, int id){
+        Optional<Banner> optional = bannerRep.findById(id);
+        Set<Category> categories = bannerDetails.getCategories();
 //        Category category = categoryRep.findCategoryByName(bannerDetails.getCategory().getName());
-//        if (optional.isPresent()){
-//            if (bannerRep.existsBannerByNameAndIdNotLike(bannerDetails.getName(), bannerDetails.getId()))
-//                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-//            else {
-//                Banner banner = optional.get();
-//                banner.setName(bannerDetails.getName());
-//                banner.setPrice(bannerDetails.getPrice());
-//                banner.setCategory(category);
-//                banner.setContent(bannerDetails.getContent());
-//                return new ResponseEntity<>(bannerRep.save(banner), HttpStatus.OK);
-//            }
-//        } else return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//    }
+        if (optional.isPresent()){
+            if (bannerRep.existsBannerByNameAndIdNotLike(bannerDetails.getName(), bannerDetails.getId()))
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            else {
+                for (Category category : categories) {
+                    bannerDetails.addCategoryToBanner(category);
+                    category.addBannerToCategory(bannerDetails);
+                }
+                Banner banner = optional.get();
+                banner.setName(bannerDetails.getName());
+                banner.setPrice(bannerDetails.getPrice());
+                banner.setCategories(bannerDetails.getCategories());
+                banner.setContent(bannerDetails.getContent());
+                return new ResponseEntity<>(bannerRep.save(banner), HttpStatus.OK);
+            }
+        } else return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
 
     public ResponseEntity<Banner> createNewBanner(Banner banner){
         Set<Category> categories = banner.getCategories();
