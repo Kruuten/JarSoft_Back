@@ -3,6 +3,10 @@ package com.kruten.jarsofttesttask.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
@@ -16,6 +20,9 @@ import java.util.Set;
 @Table(name = "banner")
 @Setter
 @Getter
+@SQLDelete(sql = "UPDATE banner SET deleted = true WHERE id=?")
+@FilterDef(name = "deletedBannerFilter", parameters = @ParamDef(name = "DELETED", type = "boolean"))
+@Filter(name = "deletedBannerFilter", condition = "deleted = :DELETED")
 public class Banner {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
