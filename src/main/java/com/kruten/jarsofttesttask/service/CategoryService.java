@@ -3,6 +3,8 @@ package com.kruten.jarsofttesttask.service;
 import com.kruten.jarsofttesttask.entity.Banner;
 import com.kruten.jarsofttesttask.entity.Category;
 import com.kruten.jarsofttesttask.repository.CategoryRep;
+import com.kruten.jarsofttesttask.validator.ErrorResponse;
+import com.kruten.jarsofttesttask.validator.Violation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,9 +41,7 @@ public class CategoryService {
 
     public ResponseEntity<Category> getCategory(int id){
         Optional<Category> optional = categoryRep.findById(id);
-        if (optional.isPresent()){
-            return new ResponseEntity<>(optional.get(), HttpStatus.OK);
-        } else return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return optional.map(category -> new ResponseEntity<>(category, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NO_CONTENT));
     }
 
     public ResponseEntity<Category> editCategory(Category categoryDetails, int id){
@@ -63,21 +63,28 @@ public class CategoryService {
         } else return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    public ResponseEntity<Category> createNewCategory(Category category){
+    public ResponseEntity<?> createNewCategory(Category category){
+        String nameExists = String.format("Category with name [%s] already exist", category.getName());
+        String idNameExists = String.format("Category with request ID [%s] already exist", category.getReqName());
         boolean existWithName = categoryRep.existsCategoryByName(category.getName());
-        boolean existWithReqName = categoryRep.existsCategoryByReqName(category.getReqName());
+        boolean existWithIdName = categoryRep.existsCategoryByReqName(category.getReqName());
+        ErrorResponse errorResponse = new ErrorResponse();
 
-        if (existWithName)
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        else if (existWithReqName)
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        if (existWithName) {
+            errorResponse.getViolations().add(new Violation("Name", nameExists));
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+        else if (existWithIdName) {
+            errorResponse.getViolations().add(new Violation("ID", idNameExists));
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
         else return new ResponseEntity<>(categoryRep
                     .save(new Category(category.getName()
                             , category.getReqName()))
                     , HttpStatus.OK);
     }
 
-    public ResponseEntity<Category> deleteCategory(int id){
+    public ResponseEntity<?> deleteCategory(int id){
         Optional<Category> optional = categoryRep.findById(id);
         if (optional.isPresent()){
             Category category = optional.get();
@@ -87,8 +94,15 @@ public class CategoryService {
             if (banners.isEmpty()) {
                 category.setDeleted(true);
                 return new ResponseEntity<>(categoryRep.save(category), HttpStatus.OK);
-            } else{
-                return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
+            } else {
+              StringBuilder builder = new StringBuilder();
+              for (Banner banner: banners) {
+                  builder.append("[" + banner.getId() + "]");
+              }
+                  String error = String.format("Banner(s) with id(s): %s is not deleted, you cannot delete this category", builder);
+                  ErrorResponse errorResponse = new ErrorResponse();
+                  errorResponse.getViolations().add(new Violation("id", error));
+                  return new ResponseEntity<>(errorResponse, HttpStatus.METHOD_NOT_ALLOWED);
             }
         }
         else return new ResponseEntity<>(HttpStatus.NOT_FOUND);

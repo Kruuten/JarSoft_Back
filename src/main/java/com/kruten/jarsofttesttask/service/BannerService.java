@@ -4,6 +4,8 @@ import com.kruten.jarsofttesttask.entity.Banner;
 import com.kruten.jarsofttesttask.entity.Category;
 import com.kruten.jarsofttesttask.repository.BannerRep;
 import com.kruten.jarsofttesttask.repository.CategoryRep;
+import com.kruten.jarsofttesttask.validator.ErrorResponse;
+import com.kruten.jarsofttesttask.validator.Violation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,36 +54,43 @@ public class BannerService {
         else return new  ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    public ResponseEntity<Banner> editBanner(Banner bannerDetails, int id){
+    public ResponseEntity<?> editBanner(Banner banner, int id){
         Optional<Banner> optional = bannerRep.findById(id);
-        Set<Category> categories = bannerDetails.getCategories();
+        Set<Category> categories = banner.getCategories();
+        String bannerExists = String.format("Banner [%s] already exist", banner.getName());
 //        Category category = categoryRep.findCategoryByName(bannerDetails.getCategory().getName());
         if (optional.isPresent()){
-            if (bannerRep.existsBannerByNameAndIdNotLike(bannerDetails.getName(), bannerDetails.getId()))
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            if (bannerRep.existsBannerByNameAndIdNotLike(banner.getName(), banner.getId())) {
+                ErrorResponse errorResponse = new ErrorResponse();
+                errorResponse.getViolations().add(new Violation("name", bannerExists));
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+            }
             else {
                 for (Category category : categories) {
-                    bannerDetails.addCategoryToBanner(category);
-                    category.addBannerToCategory(bannerDetails);
+                    banner.addCategoryToBanner(category);
+                    category.addBannerToCategory(banner);
                 }
-                Banner banner = optional.get();
-                banner.setName(bannerDetails.getName());
-                banner.setPrice(bannerDetails.getPrice());
-                banner.setCategories(bannerDetails.getCategories());
-                banner.setContent(bannerDetails.getContent());
-                return new ResponseEntity<>(bannerRep.save(banner), HttpStatus.OK);
+                Banner editBanner = optional.get();
+                editBanner.setName(banner.getName());
+                editBanner.setPrice(banner.getPrice());
+                editBanner.setCategories(banner.getCategories());
+                editBanner.setContent(banner.getContent());
+                return new ResponseEntity<>(bannerRep.save(editBanner), HttpStatus.OK);
             }
         } else return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    public ResponseEntity<Banner> createNewBanner(Banner banner){
+    public ResponseEntity<?> createNewBanner(Banner banner){
         Set<Category> categories = banner.getCategories();
+        String bannerExists = String.format("Banner [%s] already exist", banner.getName());
 //        Category category = categoryRep.findCategoryByName(banner.getCategory().getName());
 
         try{
-            if (bannerRep.existsBannerByName(banner.getName()))
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
+            if (bannerRep.existsBannerByName(banner.getName())) {
+                ErrorResponse errorResponse = new ErrorResponse();
+                errorResponse.getViolations().add(new Violation("name", bannerExists));
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+            }
             else {
                 for (Category category: categories) {
                     banner.addCategoryToBanner(category);

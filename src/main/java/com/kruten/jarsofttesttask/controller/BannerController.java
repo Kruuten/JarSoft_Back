@@ -4,6 +4,7 @@ import com.kruten.jarsofttesttask.entity.Banner;
 import com.kruten.jarsofttesttask.security.security.jwt.JwtUtils;
 import com.kruten.jarsofttesttask.service.BannerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,31 +29,51 @@ public class BannerController {
 
     @GetMapping("/banners")
     public ResponseEntity<List<Banner>> getBanners(@RequestParam(required = false) String name) {
-        return bannerService.getBanners(name);
+        try {
+            return bannerService.getBanners(name);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/banners/{id}")
     public ResponseEntity<Banner> getBanner(@PathVariable int id){
-        return bannerService.getBanner(id);
+        try {
+            return bannerService.getBanner(id);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
 
     @PutMapping("banners/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<Banner> editBanner(@RequestBody @Valid Banner bannerDetails, @PathVariable int id){
-        return bannerService.editBanner(bannerDetails, id);
+    public ResponseEntity<?> editBanner(@RequestBody @Valid Banner bannerDetails, @PathVariable int id){
+        try {
+            return bannerService.editBanner(bannerDetails, id);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     @PostMapping("/banners")
     @RolesAllowed("ROLE_ADMIN")
-    public ResponseEntity<Banner> addNewBanner(@RequestBody @Valid Banner banner){
-        return bannerService.createNewBanner(banner);
+    public ResponseEntity<?> addNewBanner(@RequestBody @Valid Banner banner){
+        try {
+            return bannerService.createNewBanner(banner);
+        } catch (Exception e) {
+            return  new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @DeleteMapping("/banners/{id}")
     @RolesAllowed("ROLE_ADMIN")
     public ResponseEntity<Banner> deleteBanner(@PathVariable int id) {
-        return bannerService.deleteBanner(id);
+        try {
+            return bannerService.deleteBanner(id);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
 }
