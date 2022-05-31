@@ -49,16 +49,16 @@ public class BannerService {
     }
 
     public ResponseEntity<Banner> getBanner(int id){
-        if (bannerRep.findById(id).isPresent())
-            return new ResponseEntity<>(this.bannerRep.findById(id).get(), HttpStatus.OK);
-        else return new  ResponseEntity<>(HttpStatus.NOT_FOUND);
+        Optional<Banner> optional = bannerRep.findByIdAndDeletedIsFalse(id);
+        if (optional.isPresent()) {
+            return new ResponseEntity<>(optional.get(), HttpStatus.OK);
+        } else return new  ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     public ResponseEntity<?> editBanner(Banner banner, int id){
         Optional<Banner> optional = bannerRep.findById(id);
         Set<Category> categories = banner.getCategories();
         String bannerExists = String.format("Banner [%s] already exist", banner.getName());
-//        Category category = categoryRep.findCategoryByName(bannerDetails.getCategory().getName());
         if (optional.isPresent()){
             if (bannerRep.existsBannerByNameAndIdNotLike(banner.getName(), banner.getId())) {
                 ErrorResponse errorResponse = new ErrorResponse();
@@ -83,7 +83,6 @@ public class BannerService {
     public ResponseEntity<?> createNewBanner(Banner banner){
         Set<Category> categories = banner.getCategories();
         String bannerExists = String.format("Banner [%s] already exist", banner.getName());
-//        Category category = categoryRep.findCategoryByName(banner.getCategory().getName());
 
         try{
             if (bannerRep.existsBannerByName(banner.getName())) {

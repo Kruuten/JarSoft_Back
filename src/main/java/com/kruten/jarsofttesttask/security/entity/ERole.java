@@ -1,5 +1,8 @@
 package com.kruten.jarsofttesttask.security.entity;
 
+import lombok.Getter;
+
+@Getter
 public enum ERole {
     ROLE_USER ("user"),
     ROLE_ADMIN("admin");
@@ -10,7 +13,4 @@ public enum ERole {
         this.role = role;
     }
 
-    public String getRole() {
-        return role;
-    }
 }

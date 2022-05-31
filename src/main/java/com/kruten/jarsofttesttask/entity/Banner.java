@@ -1,28 +1,23 @@
 package com.kruten.jarsofttesttask.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.kruten.jarsofttesttask.validator.annotations.Price;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.ParamDef;
-import org.hibernate.annotations.SQLDelete;
 import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 @Entity
-@Table(name = "banner")
 @Setter
 @Getter
-@SQLDelete(sql = "UPDATE banner SET deleted = true WHERE id=?")
-@FilterDef(name = "deletedBannerFilter", parameters = @ParamDef(name = "DELETED", type = "boolean"))
-@Filter(name = "deletedBannerFilter", condition = "deleted = :DELETED")
+@Table(name = "banner")
 public class Banner {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,7 +30,9 @@ public class Banner {
     private String name;
 
     @Column(name = "PRICE")
+    @NotNull
     @Positive(message = "Price should be >0")
+    @Price(message = "price should be between 0.01 and 99999.99")
     private float price;
 
 

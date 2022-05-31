@@ -13,4 +13,5 @@ public interface CategoryRep extends JpaRepository<Category, Integer> {
     boolean existsCategoryByReqName(String name);
     boolean existsCategoryByNameAndIdNotLike(String name, int id);
     boolean existsCategoryByReqNameAndIdNotLike(String name, int id);
+
 }
