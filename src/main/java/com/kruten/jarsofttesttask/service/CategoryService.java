@@ -44,20 +44,29 @@ public class CategoryService {
         return optional.map(category -> new ResponseEntity<>(category, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NO_CONTENT));
     }
 
-    public ResponseEntity<Category> editCategory(Category categoryDetails, int id){
+    public ResponseEntity<?> editCategory(Category editCategory, int id){
         Optional<Category> optional = categoryRep.findById(id);
-        boolean existWithName = categoryRep.existsCategoryByNameAndIdNotLike(categoryDetails.getName(), id);
-        boolean existWithReqName = categoryRep.existsCategoryByReqNameAndIdNotLike(categoryDetails.getReqName(), id);
+        String nameExists = String.format("Category with name [%s] already exist", editCategory.getName());
+        String idExists =
+                String.format("Category with request name [%s] already exist", editCategory.getReqName());
+        boolean existWithName = categoryRep.existsCategoryByNameAndIdNotLike(editCategory.getName(), id);
+        boolean existWithReqName = categoryRep.existsCategoryByReqNameAndIdNotLike(editCategory.getReqName(), id);
 
         if (optional.isPresent()) {
-            if (existWithName)
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            else if (existWithReqName)
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            if (existWithName) {
+                ErrorResponse error = new ErrorResponse();
+                error.getViolations().add(new Violation("Name", nameExists));
+                return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+            }
+            else if (existWithReqName) {
+                ErrorResponse error = new ErrorResponse();
+                error.getViolations().add(new Violation("ID", idExists));
+                return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+            }
             else{
                 Category category = optional.get();
-                category.setName(categoryDetails.getName());
-                category.setReqName(category.getReqName());
+                category.setName(editCategory.getName());
+                category.setReqName(editCategory.getReqName());
                 return new ResponseEntity<>(categoryRep.save(category), HttpStatus.OK);
             }
         } else return new ResponseEntity<>(HttpStatus.NOT_FOUND);

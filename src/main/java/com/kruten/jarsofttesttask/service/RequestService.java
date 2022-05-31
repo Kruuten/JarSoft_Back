@@ -14,8 +14,7 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class RequestService {
@@ -28,34 +27,51 @@ public class RequestService {
     @Autowired
     BannerRep bannerRep;
 
-    public ResponseEntity<?> getOnlyBanner(String userAgent, String reqName, HttpServletRequest ipAddress){
-        String ip = ipAddress.getRemoteAddr();
-        Category category = categoryRep.findCategoryByReqName(reqName);
-        if (category == null) return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        List<Banner> banners = new ArrayList<>();
-        category.getBanners().stream().filter(banner -> !banner.isDeleted()).forEach(banners::add);
-        banners.sort((o1, o2) -> Float.compare(o1.getPrice(), o2.getPrice()));
+    public ResponseEntity<?> getBannerWithCategories(String userAgent, List<String> reqCategoryIDList, HttpServletRequest ipAddress) {
+        List<Banner> banners = bannerRep.findAllByDeletedIsFalse();
+        if (banners.size() == 0) return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+        List<Category> bannerCategories;
+        List<Banner> bannersToShow = new ArrayList<>();
+        for (int i = 0; i < banners.size(); i++) {
+            bannerCategories = new ArrayList<>(banners.get(i).getCategories());
+            if (bannerCategories.size() < reqCategoryIDList.size()) {
+                banners.remove(banners.get(i));
+            }
+
+            List<String> bannerCategoriesReqId = new ArrayList<>();
+            for (Category category : bannerCategories) {
+                String id = category.getReqName();
+                bannerCategoriesReqId.add(id);
+            }
+
+
+            if (new HashSet<>(bannerCategoriesReqId).containsAll(reqCategoryIDList))
+                bannersToShow.add(banners.get(i));
+        }
+
+        bannersToShow.sort((o1, o2) -> Float.compare(o1.getPrice(), o2.getPrice()));
 
         LocalDateTime currentDateTime = LocalDateTime.now();
-        Banner banner;
 
-        while (banners.size() > 0){
-            banner = banners.get(0);
-            Request request = requestRep.findFirstByUserAgentAndIpAddressAndBannerIdOrderByIdDesc(userAgent, ip, banner);
+        while (bannersToShow.size() > 0) {
+            Banner responseBanner = bannersToShow.get(bannersToShow.size()-1);
+            String ip  = ipAddress.getRemoteAddr();
+            Request request = requestRep.findFirstByUserAgentAndIpAddressAndBannerIdOrderByIdDesc(userAgent, ip, responseBanner);
 
             if (request == null){
-                requestRep.save(new Request(banner, userAgent, ip, currentDateTime));
-                return new ResponseEntity<>(banner.getContent(), HttpStatus.OK);
+                requestRep.save(new Request(responseBanner, userAgent, ip, currentDateTime));
+                return new ResponseEntity<>(responseBanner.getContent(), HttpStatus.OK);
             }
             else {
                 LocalDateTime bannerTime = request.getDateTime();
                 if (ChronoUnit.DAYS.between(currentDateTime, bannerTime) > 0){
-                    requestRep.save(new Request(banner, userAgent, ip, currentDateTime));
-                    return new ResponseEntity<>(banner.getContent(), HttpStatus.OK);
+                    requestRep.save(new Request(responseBanner, userAgent, ip, currentDateTime));
+                    return new ResponseEntity<>(responseBanner.getContent(), HttpStatus.OK);
                 }
-                else banners.remove(0);
+                else bannersToShow.remove(bannersToShow.size()-1);
             }
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
+        }
 }

@@ -7,19 +7,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @CrossOrigin(origins = "*",maxAge = 3600)
 @RestController
-@RequestMapping("/api/request")
+@RequestMapping("/")
 public class RequestController {
 
     @Autowired
     RequestService requestService;
 
-    @GetMapping("/bid")
+    @GetMapping("bid")
     public ResponseEntity<?> getOnlyBanner(@RequestHeader(value = HttpHeaders.USER_AGENT) String userAgent
-            , @RequestParam(value = "category") String reqName
+            , @RequestParam(value = "cat") List<String> reqCategoryIdList
             , HttpServletRequest ipAddress){
-        return requestService.getOnlyBanner(userAgent, reqName, ipAddress);
+        return requestService.getBannerWithCategories(userAgent, reqCategoryIdList, ipAddress);
     }
 }
