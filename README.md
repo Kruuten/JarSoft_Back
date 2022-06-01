@@ -12,6 +12,10 @@ Spring boot App with frontend on React, MySQL, Swagger
 #### 2.  Setup DB: ####
 > $ go to application.properties and setup your DB url, login, passport
 
+#### 3. Check Java version: ####
+> $ Make sure you using jdk17
+> $ in terminal "javac -version"
+
 #### 3. Run project: ####
 > $ mvn clean install
 > $ mvn spring-boot: run
