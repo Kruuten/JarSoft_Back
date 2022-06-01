@@ -1,5 +1,5 @@
 # Jarsoft backend
-Spring boot App with frontend on React, MySQL, Docker, Swagger
+Spring boot App with frontend on React, MySQL, Swagger
 
 ### Instrucion to install: ###
 #### 1. Clone project. From command line: ####
