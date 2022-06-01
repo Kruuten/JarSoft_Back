@@ -19,4 +19,7 @@ go to application.properties and setup your DB url, login, passport
 #### 4. Check app: ####
 > $ Webview only CRUD methods: http://localhost:8080/swagger
 
+#### 5.  Using DB: ####
+> $ If you want to see not empty DB, run SQL sript from resources/DB
+
 #### Better to use with frontend =) ####
