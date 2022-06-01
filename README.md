@@ -6,11 +6,11 @@ Spring boot App with frontend on React, MySQL, Docker, Swagger
 > $ git clone https://github.com/Kruuten/JarSoft_Back
 
 #### 2. Free ports for launching: ####
-DB: 3306
-backend:8080
+> $ DB: 3306
+> $ backend:8080
 
 #### 2.  Setup DB: ####
-go to application.properties and setup your DB url, login, passport
+> $ go to application.properties and setup your DB url, login, passport
 
 #### 3. Run project: ####
 > $ mvn clean install
